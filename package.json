@@ -1,0 +1,30 @@
+{
+  "name": "effe-ts",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint --ext .ts,.tsx src",
+    "lint:fix": "eslint --ext .ts,.tsx --fix src"
+  },
+  "devDependencies": {
+    "@types/history": "^4.7.2",
+    "@types/react": "^16.8.23",
+    "eslint": "^6.1.0",
+    "eslint-config-werk85": "https://github.com/werk85/eslint-config-werk85.git",
+    "react": "^16.8.6",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "fp-ts": "^2.0.2",
+    "fp-ts-rxjs": "^0.6.0",
+    "history": "^4.9.0",
+    "io-ts": "^2.0.0",
+    "rxjs": "^6.5.2",
+    "unionize": "^3.0.2"
+  },
+  "peerDependencies": {
+    "react": "^16.8.6"
+  }
+}
