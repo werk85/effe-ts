@@ -48,7 +48,7 @@ export function program<Model, Action>(
 
 export function programWithFlags<Flags, Model, Action>(
   init: (flags: Flags) => State<Model, Action>,
-  update: (msg: Action, model: Model) => State<Model, Action>,
+  update: (action: Action, model: Model) => State<Model, Action>,
   subscriptions: (model: Model) => Sub<Action> = () => none
 ): (flags: Flags) => Program<Model, Action> {
   return flags => program(init(flags), update, subscriptions)

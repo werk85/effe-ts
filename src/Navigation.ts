@@ -10,7 +10,7 @@ import { State } from './State'
 
 export type Location = HistoryLocation
 
-export const navigation = <H>(history: History<H>) => {
+export const withHistory = <H>(history: History<H>) => {
   const push = <Model>(url: string): Cmd<Model> =>
     of(async () => {
       history.push(url)
@@ -20,7 +20,7 @@ export const navigation = <H>(history: History<H>) => {
   const program = <Model, Action, DOM>(
     locationToMessage: (location: Location) => Action,
     init: (location: Location) => State<Model, Action>,
-    update: (msg: Action, model: Model) => State<Model, Action>,
+    update: (action: Action, model: Model) => State<Model, Action>,
     view: (model: Model) => html.Html<DOM, Action>,
     subscriptions: (model: Model) => Sub<Action> = () => none
   ): html.Program<Model, Action, DOM> => {
@@ -36,13 +36,13 @@ export const navigation = <H>(history: History<H>) => {
     return html.program(init(history.location), update, view, subs)
   }
 
-  const programWithFlags = <flags, model, msg, dom>(
-    locationToMessage: (location: Location) => msg,
-    init: (flags: flags) => (location: Location) => [model, Cmd<msg>],
-    update: (msg: msg, model: model) => [model, Cmd<msg>],
-    view: (model: model) => html.Html<dom, msg>,
-    subscriptions: (model: model) => Sub<msg> = () => none
-  ) => (flags: flags): html.Program<model, msg, dom> => program(locationToMessage, init(flags), update, view, subscriptions)
+  const programWithFlags = <Flags, Model, Action, DOM>(
+    locationToMessage: (location: Location) => Action,
+    init: (flags: Flags) => (location: Location) => [Model, Cmd<Action>],
+    update: (action: Action, model: Model) => [Model, Cmd<Action>],
+    view: (model: Model) => html.Html<DOM, Action>,
+    subscriptions: (model: Model) => Sub<Action> = () => none
+  ) => (flags: Flags): html.Program<Model, Action, DOM> => program(locationToMessage, init(flags), update, view, subscriptions)
 
   return { program, programWithFlags, push }
 }

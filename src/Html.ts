@@ -17,13 +17,13 @@ export function map<DOM, A, Action>(ha: Html<DOM, A>, f: (a: A) => Action): Html
   return dispatch => ha(a => dispatch(f(a)))
 }
 
-export interface Program<model, msg, dom> extends platform.Program<model, msg> {
-  html$: Observable<Html<dom, msg>>
+export interface Program<Model, Action, DOM> extends platform.Program<Model, Action> {
+  html$: Observable<Html<DOM, Action>>
 }
 
 export function program<Model, Action, DOM>(
   init: State<Model, Action>,
-  update: (msg: Action, model: Model) => State<Model, Action>,
+  update: (action: Action, model: Model) => State<Model, Action>,
   view: (model: Model) => Html<DOM, Action>,
   subscriptions: (model: Model) => Sub<Action> = () => none
 ): Program<Model, Action, DOM> {
@@ -37,7 +37,7 @@ export function program<Model, Action, DOM>(
 
 export const programWithFlags = <Flags, Model, Action, DOM>(
   init: (flags: Flags) => State<Model, Action>,
-  update: (msg: Action, model: Model) => State<Model, Action>,
+  update: (action: Action, model: Model) => State<Model, Action>,
   view: (model: Model) => Html<DOM, Action>,
   subscriptions?: (model: Model) => Sub<Action>
 ) => (flags: Flags): Program<Model, Action, DOM> => program(init(flags), update, view, subscriptions)
