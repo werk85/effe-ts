@@ -1,6 +1,6 @@
 # effe-ts
 
-Fork of elm-ts. Effe is the german word for elm.
+Fork of [elm-ts](https://github.com/gcanti/elm-ts). Effe is the german word for elm.
 
 ## Install
 
@@ -49,3 +49,7 @@ html.run(app, dom => {
   ReactDOM.render(dom, document.getElementById('app'))
 })
 ```
+
+## Further resources
+
+ * [react-todo-app](https://github.com/werk85/react-todo-app)
