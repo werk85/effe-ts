@@ -3,10 +3,26 @@
   "version": "0.0.1",
   "main": "lib/index.js",
   "license": "MIT",
+  "author": "Malte Legenhausen <malte@werk85.de>",
+  "description": "Elm like framework to build SPAs in a pure funcational way",
+  "homepage": "https://github.com/werk85/effe-ts",
+  "keywords": ["fp-ts", "elm-ts", "elm", "react", "spa", "io-ts", "redux", "flux"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/werk85/effe-ts"
+  },
+  "bugs": {
+    "url": "https://github.com/werk85/effe-ts/issues"
+  },
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .ts,.tsx src",
-    "lint:fix": "eslint --ext .ts,.tsx --fix src"
+    "lint:fix": "eslint --ext .ts,.tsx --fix src",
+    "prepublish": "yarn lint && yarn build"
   },
   "devDependencies": {
     "@types/history": "^4.7.2",
