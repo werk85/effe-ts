@@ -23,7 +23,7 @@ type Model = number
 
 const init: [Model, cmd.Cmd<Action>] = [0, cmd.none]
 
-const update = (action: Action, model: Model) => {
+const update = (action: Action, model: Model): [Model, cmd.Cmd<Action>] => {
   switch (action.type) {
     case 'Increase':
       return [model + 1, cmd.none]
@@ -34,7 +34,7 @@ const update = (action: Action, model: Model) => {
 
 const view = (model: Model) => (dispatch: platform.Dispatch<Action>) => (
   <>
-    <p>{model}</p>
+    <span>Counter: {model}</span>
     <button onClick={() => dispatch({ type: 'Increase' })}>+</button>
     <button onClick={() => dispatch({ type: 'Decrease' })}>-</button>
   </>
