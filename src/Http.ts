@@ -23,7 +23,7 @@ export interface Request<A, O> {
   url: string
   decoder: t.Decoder<unknown, O>
   headers?: Record<string, string>
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: A
 }
 
