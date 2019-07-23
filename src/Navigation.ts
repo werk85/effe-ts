@@ -11,7 +11,7 @@ import { State } from './State'
 export type Location = HistoryLocation
 
 export const withHistory = <H>(history: History<H>) => {
-  const push = <Model>(url: string): Cmd<Model> =>
+  const push = (url: string): Cmd<never> =>
     of(async () => {
       history.push(url)
       return O.none
