@@ -1,6 +1,6 @@
 {
   "name": "effe-ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "license": "MIT",
   "author": "Malte Legenhausen <malte@werk85.de>",
@@ -22,7 +22,7 @@
     "build": "tsc",
     "lint": "eslint --ext .ts,.tsx src",
     "lint:fix": "eslint --ext .ts,.tsx --fix src",
-    "prepublish": "yarn lint && yarn build"
+    "prepublishOnly": "yarn lint && yarn build"
   },
   "devDependencies": {
     "@types/history": "^4.7.2",

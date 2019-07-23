@@ -1,4 +1,3 @@
-import * as action from './Action'
 import * as cmd from './Cmd'
 import * as html from './Html'
 import * as navigation from './Navigation'
@@ -8,4 +7,4 @@ import * as http from './Http'
 import * as state from './State'
 import * as time from './Time'
 
-export { action, cmd, html, http, navigation, platform, state, sub, time }
+export { cmd, html, http, navigation, platform, state, sub, time }
