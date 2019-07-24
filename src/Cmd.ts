@@ -33,6 +33,14 @@ export const perform = <A, Action>(task: T.Task<A>, f: (a: A) => Action): Cmd<Ac
     )
   )
 
+export const perform_ = <A, Action>(task: T.Task<A>): Cmd<Action> =>
+  rxOf(
+    pipe(
+      task,
+      T.map(() => O.none)
+    )
+  )
+
 export const attempt = <L, A, Action>(task: T.Task<E.Either<L, A>>, f: (e: E.Either<L, A>) => Action): Cmd<Action> =>
   perform(task, f)
 

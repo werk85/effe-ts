@@ -6,5 +6,6 @@ import * as sub from './Sub'
 import * as http from './Http'
 import * as state from './State'
 import * as time from './Time'
+import * as localStorage from './LocalStorage'
 
-export { cmd, html, http, navigation, platform, state, sub, time }
+export { cmd, html, http, localStorage, navigation, platform, state, sub, time }
