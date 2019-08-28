@@ -1,6 +1,5 @@
 import { Subject, of, Observable } from 'rxjs'
 import * as O from 'fp-ts/es6/Option'
-import { Location as HistoryLocation, History } from 'history'
 import { pipe } from 'fp-ts/es6/pipeable'
 import * as Rx from 'rxjs/operators'
 import { IORef } from 'fp-ts/es6/IORef'
@@ -10,6 +9,7 @@ import { Cmd } from './Cmd'
 import { Sub, none, batch } from './Sub'
 import * as html from './Html'
 import { State } from './State'
+import { Location as HistoryLocation, History } from 'history'
 
 export type Location = HistoryLocation
 
