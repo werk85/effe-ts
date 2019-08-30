@@ -18,6 +18,7 @@ export type URI = typeof URI
 
 export type Cmd<Action> = Observable<T.Task<O.Option<Action>>>
 export const none: Cmd<never> = EMPTY
+export const constNone = <Action>(): Cmd<Action> => none
 export const of = <Action>(a: Action) => rxOf(T.of(O.some(a)))
 
 export const getMonoid = <A>(): Monoid<Cmd<A>> => ({
