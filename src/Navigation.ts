@@ -1,11 +1,12 @@
-import { Subject, of, Observable } from 'rxjs'
+import { Subject, Observable } from 'rxjs'
 import * as O from 'fp-ts/lib/Option'
 import { pipe } from 'fp-ts/lib/pipeable'
 import * as Rx from 'rxjs/operators'
 import { IORef } from 'fp-ts/lib/IORef'
 import * as T from 'fp-ts/lib/Task'
 import * as IO from 'fp-ts/lib/IO'
-import { Cmd } from './Cmd'
+import { constUndefined } from 'fp-ts/lib/function'
+import { Cmd, perform_ } from './Cmd'
 import { Sub, none, batch } from './Sub'
 import * as html from './Html'
 import { State } from './State'
@@ -15,20 +16,13 @@ export type Location = HistoryLocation
 
 const historyRef = new IORef<O.Option<History>>(O.none)
 
-export const push = (url: string): Cmd<never> =>
-  of(
-    T.fromIO(
-      pipe(
-        historyRef.read,
-        IO.map(
-          O.chain(history => {
-            history.push(url)
-            return O.none
-          })
-        )
-      )
-    )
+export const pushTask = (url: string): T.Task<void> =>
+  pipe(
+    T.fromIO(historyRef.read),
+    T.map(O.fold(constUndefined, history => history.push(url)))
   )
+
+export const push = (url: string): Cmd<never> => perform_(pushTask(url))
 
 export interface Program<Model, Action, DOM> extends html.Program<Model, Action, DOM> {
   history: IO.IO<void>
