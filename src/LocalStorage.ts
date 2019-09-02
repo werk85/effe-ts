@@ -1,9 +1,9 @@
-import * as TE from 'fp-ts/es6/TaskEither'
+import * as TE from 'fp-ts/lib/TaskEither'
 import * as t from 'io-ts'
-import * as E from 'fp-ts/es6/Either'
-import * as O from 'fp-ts/es6/Option'
+import * as E from 'fp-ts/lib/Either'
+import * as O from 'fp-ts/lib/Option'
 import { unionize, ofType, UnionOf } from 'unionize'
-import { pipe } from 'fp-ts/es6/pipeable'
+import { pipe } from 'fp-ts/lib/pipeable'
 import { attempt, Cmd, perform_ } from './Cmd'
 
 const traverseOE = O.option.traverse(E.either)

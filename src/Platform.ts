@@ -1,5 +1,5 @@
-import * as O from 'fp-ts/es6/Option'
-import { pipe } from 'fp-ts/es6/pipeable'
+import * as O from 'fp-ts/lib/Option'
+import { pipe } from 'fp-ts/lib/pipeable'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { distinctUntilChanged, map, mergeAll, share, startWith, switchMap } from 'rxjs/operators'
 import { Cmd } from './Cmd'

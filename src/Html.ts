@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs'
-import { pipe } from 'fp-ts/es6/pipeable'
+import { pipe } from 'fp-ts/lib/pipeable'
 import * as Rx from 'rxjs/operators'
 import { Sub, none } from './Sub'
 import * as platform from './Platform'
