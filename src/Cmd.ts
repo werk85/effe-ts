@@ -66,6 +66,6 @@ export const cmd: Monad1<URI> = {
     )
 }
 
-const { ap, apFirst, apSecond, map } = pipeable(cmd)
+const { ap, apFirst, apSecond, chain, chainFirst, flatten, map } = pipeable(cmd)
 
-export { ap, apFirst, apSecond, map }
+export { ap, apFirst, apSecond, chain, chainFirst, flatten, map }
