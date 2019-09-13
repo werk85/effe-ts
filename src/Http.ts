@@ -86,19 +86,35 @@ export const request = <A, O>(req: HttpRequest<A, O>): T.Task<HttpResponseEither
     )
   )
 
-export const get = <O>(url: string, type: t.Decoder<unknown, O>): HttpRequest<never, O> => ({
+export const del = <O>(url: string, decoder: t.Decoder<unknown, O>): HttpRequest<never, O> => ({
+  url,
+  method: 'DELETE',
+  decoder
+})
+
+export const get = <O>(url: string, decoder: t.Decoder<unknown, O>): HttpRequest<never, O> => ({
   url,
   method: 'GET',
-  decoder: type,
+  decoder,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
-export const post = <A, O>(url: string, body: A, type: t.Decoder<unknown, O>): HttpRequest<A, O> => ({
+export const post = <A, O>(url: string, body: A, decoder: t.Decoder<unknown, O>): HttpRequest<A, O> => ({
   url,
   method: 'POST',
-  decoder: type,
+  decoder,
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body
+})
+
+export const put = <A, O>(url: string, body: A, decoder: t.Decoder<unknown, O>): HttpRequest<A, O> => ({
+  url,
+  method: 'PUT',
+  decoder,
   headers: {
     'Content-Type': 'application/json'
   },

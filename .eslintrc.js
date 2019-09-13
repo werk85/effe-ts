@@ -7,7 +7,7 @@ module.exports = {
   },
   settings: {
     "import/resolver": {
-      typescript: {
+      ts: {
         directory: 'src'
       }
     }

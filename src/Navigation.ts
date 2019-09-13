@@ -5,7 +5,6 @@ import * as Rx from 'rxjs/operators'
 import { IORef } from 'fp-ts/lib/IORef'
 import * as T from 'fp-ts/lib/Task'
 import * as IO from 'fp-ts/lib/IO'
-import { constUndefined } from 'fp-ts/lib/function'
 import { Cmd, perform_ } from './Cmd'
 import { Sub, none, batch } from './Sub'
 import * as html from './Html'
@@ -16,10 +15,15 @@ export type Location = HistoryLocation
 
 const historyRef = new IORef<O.Option<History>>(O.none)
 
-export const pushTask = (url: string): T.Task<void> =>
+export const pushTask = (url: string): T.Task<O.Option<never>> =>
   pipe(
     T.fromIO(historyRef.read),
-    T.map(O.fold(constUndefined, history => history.push(url)))
+    T.map(
+      O.chain(history => {
+        history.push(url)
+        return O.none
+      })
+    )
   )
 
 export const push = (url: string): Cmd<never> => perform_(pushTask(url))

@@ -1,6 +1,6 @@
 {
   "name": "effe-ts",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "lib/index.js",
   "license": "MIT",
   "author": "Malte Legenhausen <malte@werk85.de>",
@@ -37,22 +37,22 @@
   "devDependencies": {
     "@types/history": "^4.7.3",
     "@types/jest": "^24.0.18",
-    "@types/node": "^12.7.3",
+    "@types/node": "^12.7.5",
     "@types/react": "^16.9.2",
     "eslint": "^6.3.0",
     "eslint-config-werk85": "https://github.com/werk85/eslint-config-werk85.git",
-    "fast-check": "^1.16.2",
+    "fast-check": "^1.16.3",
     "fp-ts-laws": "^0.2.0",
     "jest": "^24.9.0",
     "react": "^16.9.0",
-    "ts-jest": "^24.0.2",
-    "typescript": "^3.6.2"
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.6.3"
   },
   "dependencies": {
     "fp-ts": "^2.0.5",
-    "history": "^4.9.0",
+    "history": "^4.10.1",
     "io-ts": "^2.0.1",
-    "rxjs": "^6.5.2",
+    "rxjs": "^6.5.3",
     "unionize": "^3.0.2"
   }
 }
