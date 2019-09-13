@@ -2,18 +2,18 @@ import * as TE from 'fp-ts/lib/TaskEither'
 import * as t from 'io-ts'
 import * as E from 'fp-ts/lib/Either'
 import * as O from 'fp-ts/lib/Option'
-import { unionize, ofType, UnionOf } from 'unionize'
+import { Union, of } from 'ts-union'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { attempt, Cmd, perform_ } from './Cmd'
 
 const traverseOE = O.option.traverse(E.either)
 
-export const LocalStorageError = unionize({
-  ParseError: ofType<{ error: Error }>(),
-  StorageError: ofType<{ error: Error }>(),
-  ValidationErrors: ofType<{ errors: t.Errors }>()
+export const LocalStorageError = Union({
+  ParseError: of<{ error: Error }>(),
+  StorageError: of<{ error: Error }>(),
+  ValidationErrors: of<{ errors: t.Errors }>()
 })
-export type LocalStorageError = UnionOf<typeof LocalStorageError>
+export type LocalStorageError = typeof LocalStorageError.T
 
 const parseError = (err: unknown) => LocalStorageError.ParseError({ error: E.toError(err) })
 const storageError = (err: unknown) => LocalStorageError.StorageError({ error: E.toError(err) })

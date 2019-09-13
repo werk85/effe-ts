@@ -2,7 +2,7 @@ import * as E from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as t from 'io-ts'
-import { ofType, unionize, UnionOf } from 'unionize'
+import { Union, of } from 'ts-union'
 import * as T from 'fp-ts/lib/Task'
 import * as R from 'fp-ts/lib/Record'
 import { Cmd, attempt } from './Cmd'
@@ -43,12 +43,12 @@ const convertResponse = <O>(response: Response, body: O): HttpResponse<O> => ({
   url: response.url
 })
 
-export const HttpErrorResponse = unionize({
-  BadStatusError: ofType<{ response: HttpResponse<string> }>(),
-  UnknownError: ofType<{ error: Error }>(),
-  ValidationErrors: ofType<{ value: unknown; errors: t.Errors }>()
+export const HttpErrorResponse = Union({
+  BadStatusError: of<{ response: HttpResponse<string> }>(),
+  UnknownError: of<{ error: Error }>(),
+  ValidationErrors: of<{ value: unknown; errors: t.Errors }>()
 })
-export type HttpErrorResponse = UnionOf<typeof HttpErrorResponse>
+export type HttpErrorResponse = typeof HttpErrorResponse.T
 
 const unknownError = (error: unknown): HttpErrorResponse => HttpErrorResponse.UnknownError({ error: E.toError(error) })
 const badStatusError = (response: Response): TE.TaskEither<HttpErrorResponse, never> =>

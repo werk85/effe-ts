@@ -4160,6 +4160,11 @@ ts-jest@^24.1.0:
     semver "^5.5"
     yargs-parser "10.x"
 
+ts-union@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/ts-union/-/ts-union-2.1.1.tgz#cf80f2d438212f0ceccca1f554431d449dd9db8f"
+  integrity sha512-gdEwHXI8nZCIr56hUa0pbAIfgPZvszZZUfjLmc7JcM7J19rrUzk4fSyo1fJXqjsicOXIvaEHuWWMy9332RBTXA==
+
 tsconfig-paths@^3.8.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.9.0.tgz#098547a6c4448807e8fcb8eae081064ee9a3c90b"
@@ -4223,11 +4228,6 @@ union-value@^1.0.0:
     get-value "^2.0.6"
     is-extendable "^0.1.1"
     set-value "^2.0.1"
-
-unionize@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/unionize/-/unionize-3.0.2.tgz#b01c932268cc07f846aba5e675c1ec746084c013"
-  integrity sha512-sLc/42zpKCqJ3YAGmap6k8axrnnLwiDN+Nb5s1jz0LgR3Jz/n0X2C8RBVflpFt/V6h/BzqaCM2hZSFoieXX/VA==
 
 unset-value@^1.0.0:
   version "1.0.0"
