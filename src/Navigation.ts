@@ -11,7 +11,7 @@ import * as html from './Html'
 import { State } from './State'
 import { Location as HistoryLocation, History } from 'history'
 
-export type Location = HistoryLocation
+export interface Location extends HistoryLocation {}
 
 const historyRef = new IORef<O.Option<History>>(O.none)
 
