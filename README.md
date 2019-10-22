@@ -15,20 +15,20 @@ Counter example
 ```tsx
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { html, cmd, platform } from 'effe-ts'
+import { html, cmd, platform, state } from 'effe-ts'
 
 type Action = { type: 'Increase' } | { type: 'Decrease' }
 
 type Model = number
 
-const init: [Model, cmd.Cmd<Action>] = [0, cmd.none]
+const init: state.State<Model> = state.of(0)
 
-const update = (action: Action, model: Model): [Model, cmd.Cmd<Action>] => {
+const update = (action: Action, model: Model): state.State<Model> => {
   switch (action.type) {
     case 'Increase':
-      return [model + 1, cmd.none]
+      return state.of(model + 1)
     case 'Decrease':
-      return [model - 1, cmd.none]
+      return state.of(model - 1)
   }
 }
 
