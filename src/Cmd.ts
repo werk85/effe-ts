@@ -6,6 +6,7 @@ import { pipe, pipeable } from 'fp-ts/lib/pipeable'
 import * as Rx from 'rxjs/operators'
 import * as E from 'fp-ts/lib/Either'
 import { Monad1 } from 'fp-ts/lib/Monad'
+import * as TE from 'fp-ts/lib/TaskEither'
 
 declare module 'fp-ts/lib/HKT' {
   interface URItoKind<A> {
@@ -42,7 +43,7 @@ export const perform_ = <A, Action>(task: T.Task<A>): Cmd<Action> =>
     )
   )
 
-export const attempt = <L, A, Action>(task: T.Task<E.Either<L, A>>, f: (e: E.Either<L, A>) => Action): Cmd<Action> =>
+export const attempt = <L, A, Action>(task: TE.TaskEither<L, A>, f: (e: E.Either<L, A>) => Action): Cmd<Action> =>
   perform(task, f)
 
 export const cmd: Monad1<URI> = {
