@@ -15,7 +15,7 @@ Counter example
 ```tsx
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { html, cmd, platform, state } from 'effe-ts'
+import { html, platform, state } from 'effe-ts'
 
 type Action = { type: 'Increase' } | { type: 'Decrease' }
 
