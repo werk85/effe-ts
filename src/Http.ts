@@ -3,9 +3,9 @@ import { pipe } from 'fp-ts/lib/pipeable'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as t from 'io-ts'
 import { Union, of } from 'ts-union'
-import * as T from 'fp-ts/lib/Task'
 import * as R from 'fp-ts/lib/Record'
-import { Cmd, attempt } from './Cmd'
+import * as RTE from 'fp-ts/lib/ReaderTaskEither'
+import { CmdR, attempt } from './CmdR'
 
 export interface HttpResponse<O> {
   headers: Record<string, string>
@@ -23,6 +23,20 @@ export interface HttpRequest<A, O> {
   headers?: Record<string, string>
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: A
+}
+
+export const HttpErrorResponse = Union({
+  BadStatusError: of<HttpResponse<string>>(),
+  UnknownError: of<Error>(),
+  ParseError: of<Error>(),
+  ValidationErrors: of<t.Errors, unknown>()
+})
+export type HttpErrorResponse = typeof HttpErrorResponse.T
+
+const parseError = (error: unknown): HttpErrorResponse => HttpErrorResponse.ParseError(E.toError(error))
+
+export interface Http {
+  <A, O>(req: HttpRequest<A, O>): TE.TaskEither<Error, HttpResponse<string>>
 }
 
 const convertHeaders = (headers: Headers): Record<string, string> => {
@@ -43,45 +57,50 @@ const convertResponse = <O>(response: Response, body: O): HttpResponse<O> => ({
   url: response.url
 })
 
-export const HttpErrorResponse = Union({
-  BadStatusError: of<{ response: HttpResponse<string> }>(),
-  UnknownError: of<{ error: Error }>(),
-  ValidationErrors: of<{ value: unknown; errors: t.Errors }>()
-})
-export type HttpErrorResponse = typeof HttpErrorResponse.T
-
-const unknownError = (error: unknown): HttpErrorResponse => HttpErrorResponse.UnknownError({ error: E.toError(error) })
-const badStatusError = (response: Response): TE.TaskEither<HttpErrorResponse, never> =>
-  pipe(
-    TE.tryCatch(() => response.text(), unknownError),
-    TE.chain(body => TE.left(HttpErrorResponse.BadStatusError({ response: convertResponse(response, body) })))
-  )
-
-export type HttpResponseEither<O> = E.Either<HttpErrorResponse, HttpResponse<O>>
-
-export const request = <A, O>(req: HttpRequest<A, O>): T.Task<HttpResponseEither<O>> =>
+export const fetch: Http = req =>
   pipe(
     TE.tryCatch(
       () =>
-        fetch(req.url, {
+        window.fetch(req.url, {
           ...req,
           body: typeof req.body !== 'undefined' ? JSON.stringify(req.body) : undefined
         }),
-      unknownError
+      E.toError
     ),
-    TE.chain(response => (response.status >= 400 ? badStatusError(response) : TE.right(response))),
     TE.chain(response =>
       pipe(
-        TE.tryCatch(() => response.json(), unknownError),
-        TE.chain(json =>
-          TE.fromEither(
-            pipe(
-              req.decoder.decode(json),
-              E.mapLeft(errors => HttpErrorResponse.ValidationErrors({ value: json, errors }))
+        TE.tryCatch(() => response.text(), E.toError),
+        TE.map(body => convertResponse(response, body))
+      )
+    )
+  )
+
+export interface HttpEnv {
+  http: Http
+}
+export type HttpResponseEither<O> = E.Either<HttpErrorResponse, HttpResponse<O>>
+export type HttpResponseReaderTaskEither<Env, O> = RTE.ReaderTaskEither<Env, HttpErrorResponse, HttpResponse<O>>
+
+export const request = <Env extends HttpEnv, A, O>(req: HttpRequest<A, O>): HttpResponseReaderTaskEither<Env, O> => env =>
+  pipe(
+    env.http(req),
+    TE.mapLeft(HttpErrorResponse.UnknownError),
+    TE.chain(response =>
+      response.status.code >= 400 ? TE.left(HttpErrorResponse.BadStatusError(response)) : TE.right(response)
+    ),
+    TE.chain(response =>
+      pipe(
+        E.parseJSON(response.body, parseError),
+        E.chain(json =>
+          pipe(
+            req.decoder.decode(json),
+            E.bimap(
+              errors => HttpErrorResponse.ValidationErrors(errors, json),
+              body => ({ ...response, body })
             )
           )
         ),
-        TE.map(body => convertResponse(response, body))
+        TE.fromEither
       )
     )
   )
@@ -121,7 +140,7 @@ export const put = <A, O>(url: string, body: A, decoder: t.Decoder<unknown, O>):
   body
 })
 
-export const send = <A, O, Action>(
+export const send = <Env extends HttpEnv, A, O, Action>(
   req: HttpRequest<A, O>,
-  f: (e: E.Either<HttpErrorResponse, HttpResponse<O>>) => Action
-): Cmd<Action> => attempt(request(req), f)
+  f: (e: HttpResponseEither<O>) => Action
+): CmdR<Env, Action> => attempt(request(req), f)
