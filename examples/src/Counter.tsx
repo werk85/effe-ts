@@ -1,23 +1,8 @@
-# effe-ts
-
-Fork of [elm-ts](https://github.com/gcanti/elm-ts). Effe is the german word for elm.
-
-## Install
-
-```
-yarn add effe-ts
-```
-
-## Usage
-
-### Counter example
-
-```tsx
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { html, platform, state } from 'effe-ts'
 
-type Action = { type: 'Increase' } | { type: 'Decrease' }
+type Action = { type: 'Increase' } | { type: 'Decrease' }
 
 type Model = number
 
@@ -43,9 +28,3 @@ const view = (model: Model) => (dispatch: platform.Dispatch<Action>) => (
 const app = html.program(init, update, view)
 
 html.run(app, dom => ReactDOM.render(dom, document.getElementById('app')!), {})
-```
-
-### Further examples
-
- * [react-todo-app](https://github.com/werk85/react-todo-app) - Example TODO application with live sync between multiple browser instances via CouchDB
- * [Http Request Example](https://github.com/werk85/examples/src/Http.tsx)

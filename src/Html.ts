@@ -1,9 +1,12 @@
 import { Observable } from 'rxjs'
 import { pipe } from 'fp-ts/lib/pipeable'
 import * as Rx from 'rxjs/operators'
-import { Sub, none } from './Sub'
+import { Reader } from 'fp-ts/lib/Reader'
+import * as subr from './SubR'
 import * as platform from './Platform'
-import { State } from './State'
+import * as stater from './StateR'
+import * as state from './State'
+import * as sub from './Sub'
 
 export interface Html<DOM, Action> {
   (dispatch: platform.Dispatch<Action>): DOM
@@ -20,30 +23,44 @@ export function map<DOM, A, Action>(ha: Html<DOM, A>, f: (a: A) => Action): Html
 export interface Program<Model, Action, DOM> extends platform.Program<Model, Action> {
   html$: Observable<Html<DOM, Action>>
 }
+export interface ProgramR<Env, Model, Action, DOM> extends Reader<Env, Program<Model, Action, DOM>> {}
 
-export function program<Model, Action, DOM>(
-  init: State<Model, Action>,
-  update: (action: Action, model: Model) => State<Model, Action>,
+export function programR<Env, Model, Action, DOM>(
+  init: Reader<Env, stater.StateR<Env, Model, Action>>,
+  update: (action: Action, model: Model) => stater.StateR<Env, Model, Action>,
   view: (model: Model) => Html<DOM, Action>,
-  subscriptions: (model: Model) => Sub<Action> = () => none
-): Program<Model, Action, DOM> {
-  const { dispatch, cmd$, sub$, model$ } = platform.program(init, update, subscriptions)
-  const html$ = pipe(
-    model$,
-    Rx.map(model => view(model))
-  )
-  return { dispatch, cmd$, sub$, model$, html$ }
+  subscriptions: subr.SubR<Env, Model, Action> = subr.none
+): ProgramR<Env, Model, Action, DOM> {
+  return env => {
+    const { dispatch, cmd$, sub$, model$ } = platform.programR(init, update, subscriptions)(env)
+    const html$ = pipe(
+      model$,
+      Rx.map(model => view(model))
+    )
+    return { dispatch, cmd$, sub$, model$, html$ }
+  }
 }
 
-export const programWithFlags = <Flags, Model, Action, DOM>(
-  init: (flags: Flags) => State<Model, Action>,
-  update: (action: Action, model: Model) => State<Model, Action>,
+export function program<Model, Action, DOM>(
+  init: state.State<Model, Action>,
+  update: (action: Action, model: Model) => state.State<Model, Action>,
   view: (model: Model) => Html<DOM, Action>,
-  subscriptions?: (model: Model) => Sub<Action>
-) => (flags: Flags): Program<Model, Action, DOM> => program(init(flags), update, view, subscriptions)
+  subscriptions: sub.Sub<Model, Action> = sub.none
+): ProgramR<{}, Model, Action, DOM> {
+  return programR(
+    () => stater.fromState(init),
+    (action, model) => stater.fromState(update(action, model)),
+    view,
+    subr.fromSub(subscriptions)
+  )
+}
 
-export const run = <Model, Action, DOM>(program: Program<Model, Action, DOM>, renderer: Renderer<DOM>): Observable<Model> => {
-  const { dispatch, html$ } = program
-  html$.subscribe(html => renderer(html(dispatch)))
-  return platform.run(program)
+export function run<Env, Model, Action, DOM>(
+  program: ProgramR<Env, Model, Action, DOM>,
+  renderer: Renderer<DOM>,
+  env: Env
+): Observable<Model> {
+  const p = program(env)
+  p.html$.subscribe(html => renderer(html(p.dispatch)))
+  return platform.run(() => p, env)
 }
