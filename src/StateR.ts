@@ -19,12 +19,12 @@ declare module 'fp-ts/lib/HKT' {
 export const URI = 'effe-ts/StateR'
 export type URI = typeof URI
 
-export type StateR<Env, Model, Action = never> = [Model, CmdR<Env, Action>]
+export type StateR<R, Model, Action = never> = [Model, CmdR<R, Action>]
 
-export const model = <Env, Model, Action>(state: StateR<Env, Model, Action>): Model => state[0]
-export const cmdr = <Env, Model, Action>(state: StateR<Env, Model, Action>): CmdR<Env, Action> => state[1]
+export const model = <R, Model, Action>(state: StateR<R, Model, Action>): Model => state[0]
+export const cmdr = <R, Model, Action>(state: StateR<R, Model, Action>): CmdR<R, Action> => state[1]
 
-export const of = <Env, Model, Action>(model: Model): StateR<Env, Model, Action> => [model, none]
+export const of = <R, Model, Action>(model: Model): StateR<R, Model, Action> => [model, none]
 
 export function fromState<Model, Action>([model, cmd]: State<Model, Action>): StateR<{}, Model, Action> {
   return [model, fromCmd(cmd)]

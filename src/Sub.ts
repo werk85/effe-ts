@@ -4,6 +4,7 @@ import * as Rx from 'rxjs/operators'
 import { pipeable, pipe } from 'fp-ts/lib/pipeable'
 import { Monoid } from 'fp-ts/lib/Monoid'
 import { Monad2 } from 'fp-ts/lib/Monad'
+import { Profunctor2 } from 'fp-ts/lib/Profunctor'
 
 declare module 'fp-ts/lib/HKT' {
   interface URItoKind2<E, A> {
@@ -29,9 +30,10 @@ export function getMonoid<Model, Action>(): Monoid<Sub<Model, Action>> {
   }
 }
 
-export const sub: Monad2<URI> = {
+export const sub: Profunctor2<URI> & Monad2<URI> = {
   URI,
   map: (ma, f) => model$ => Rx.map(f)(ma(model$)),
+  promap: (fbc, f, g) => model$ => pipe(model$, Rx.map(f), fbc, Rx.map(g)),
   ap: (mab, ma) => model$ =>
     pipe(
       combineLatest(mab(model$), ma(model$)),
@@ -41,6 +43,6 @@ export const sub: Monad2<URI> = {
   chain: (ma, f) => model$ => pipe(ma(model$), Rx.mergeMap(f))
 }
 
-const { ap, apFirst, apSecond, map, chainFirst, flatten, chain } = pipeable(sub)
+const { ap, apFirst, apSecond, chain, map, chainFirst, flatten, promap } = pipeable(sub)
 
-export { ap, apFirst, apSecond, chain, chainFirst, flatten, map }
+export { ap, apFirst, apSecond, chain, chainFirst, flatten, map, promap }

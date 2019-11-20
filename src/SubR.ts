@@ -3,6 +3,7 @@ import * as Rr from 'fp-ts/lib/Reader'
 import { pipeable } from 'fp-ts/lib/pipeable'
 import { Monoid } from 'fp-ts/lib/Monoid'
 import { Monad3 } from 'fp-ts/lib/Monad'
+import { Profunctor3 } from 'fp-ts/lib/Profunctor'
 import * as sub from './Sub'
 
 declare module 'fp-ts/lib/HKT' {
@@ -14,30 +15,31 @@ declare module 'fp-ts/lib/HKT' {
 export const URI = 'effe-ts/SubR'
 export type URI = typeof URI
 
-export interface SubR<Env, Model, Action> extends Rr.Reader<Env, sub.Sub<Model, Action>> {}
+export interface SubR<R, Model, Action> extends Rr.Reader<R, sub.Sub<Model, Action>> {}
 
 export const none: SubR<{}, unknown, never> = Rr.of(sub.none)
 
-export function fromObservable<Env, Model, Action>(actions$: Observable<Action>): SubR<Env, Model, Action> {
+export function fromObservable<R, Model, Action>(actions$: Observable<Action>): SubR<R, Model, Action> {
   return Rr.of(sub.fromObservable(actions$))
 }
 
-export function fromSub<Env, Model, Action>(sub: sub.Sub<Model, Action>): SubR<Env, Model, Action> {
+export function fromSub<R, Model, Action>(sub: sub.Sub<Model, Action>): SubR<R, Model, Action> {
   return Rr.of(sub)
 }
 
-export function getMonoid<Env, Model, Action>(): Monoid<SubR<Env, Model, Action>> {
+export function getMonoid<R, Model, Action>(): Monoid<SubR<R, Model, Action>> {
   return Rr.getMonoid(sub.getMonoid())
 }
 
-export const subr: Monad3<URI> = {
+export const subr: Profunctor3<URI> & Monad3<URI> = {
   URI,
   map: (ma, f) => r => sub.sub.map(ma(r), f),
+  promap: (fbc, f, g) => r => sub.sub.promap(fbc(r), f, g),
   ap: (mab, ma) => r => sub.sub.ap(mab(r), ma(r)),
   of: a => Rr.of(sub.sub.of(a)),
   chain: (ma, f) => r => sub.sub.chain(ma(r), a => f(a)(r))
 }
 
-const { ap, apFirst, apSecond, map, chainFirst, flatten, chain } = pipeable(subr)
+const { ap, apFirst, apSecond, chain, map, chainFirst, flatten, promap } = pipeable(subr)
 
-export { ap, apFirst, apSecond, chain, chainFirst, flatten, map }
+export { ap, apFirst, apSecond, chain, chainFirst, flatten, map, promap }

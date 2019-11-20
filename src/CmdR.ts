@@ -17,34 +17,31 @@ declare module 'fp-ts/lib/HKT' {
 export const URI = 'effe-ts/CmdR'
 export type URI = typeof URI
 
-export interface CmdR<Env, Action> extends Rr.Reader<Env, cmd.Cmd<Action>> {}
+export interface CmdR<R, Action> extends Rr.Reader<R, cmd.Cmd<Action>> {}
 
-export const ask = <Env>(): CmdR<Env, Env> => cmd.of
+export const ask = <R>(): CmdR<R, R> => cmd.of
 
-export const asks = <Env, Action>(f: (env: Env) => Action): CmdR<Env, Action> => r => cmd.of(f(r))
+export const asks = <R, Action>(f: (env: R) => Action): CmdR<R, Action> => r => cmd.of(f(r))
 
-export const env = <Env, Action>(f: (env: Env) => CmdR<Env, Action>): CmdR<Env, Action> => r => f(r)(r)
+export const env = <R, Action>(f: (env: R) => CmdR<R, Action>): CmdR<R, Action> => r => f(r)(r)
 
 export const none: CmdR<{}, never> = Rr.of(EMPTY)
 
 export const of = <Action>(a: Action): CmdR<{}, Action> => Rr.of(cmd.of(a))
 
-export function getMonoid<Env, Action>(): Monoid<CmdR<Env, Action>> {
-  return Rr.getMonoid<Env, cmd.Cmd<Action>>(cmd.getMonoid())
+export function getMonoid<R, Action>(): Monoid<CmdR<R, Action>> {
+  return Rr.getMonoid<R, cmd.Cmd<Action>>(cmd.getMonoid())
 }
 
-export function perform<Env, A, Action>(task: Rr.Reader<Env, T.Task<A>>, f: (a: A) => Action): CmdR<Env, Action> {
+export function perform<R, A, Action>(task: Rr.Reader<R, T.Task<A>>, f: (a: A) => Action): CmdR<R, Action> {
   return r => cmd.perform(task(r), f)
 }
 
-export function perform_<Env, A, Action>(task: Rr.Reader<Env, T.Task<A>>): CmdR<Env, Action> {
+export function perform_<R, A, Action>(task: Rr.Reader<R, T.Task<A>>): CmdR<R, Action> {
   return r => cmd.perform_(task(r))
 }
 
-export function attempt<Env, E, A, Action>(
-  task: RTE.ReaderTaskEither<Env, E, A>,
-  f: (e: E.Either<E, A>) => Action
-): CmdR<Env, Action> {
+export function attempt<R, E, A, Action>(task: RTE.ReaderTaskEither<R, E, A>, f: (e: E.Either<E, A>) => Action): CmdR<R, Action> {
   return perform(task, f)
 }
 
