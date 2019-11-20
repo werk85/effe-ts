@@ -7,7 +7,8 @@ import { Applicative } from 'fp-ts/lib/Applicative'
 import { HKT } from 'fp-ts/lib/HKT'
 import { pipeable } from 'fp-ts/lib/pipeable'
 import { Monad2 } from 'fp-ts/lib/Monad'
-import { Cmd, cmd as cmd_, none, getMonoid } from './Cmd'
+import { Monoid } from 'fp-ts/lib/Monoid'
+import { Cmd, cmd as cmd_, none, getMonoid as cmdGetMonoid } from './Cmd'
 
 declare module 'fp-ts/lib/HKT' {
   interface URItoKind2<E, A> {
@@ -25,7 +26,14 @@ export const cmd = <Model, Action>(state: State<Model, Action>): Cmd<Action> => 
 
 export const of = <Model, Action>(model: Model): State<Model, Action> => [model, none]
 
-const monoidCmd = getMonoid<any>()
+const monoidCmd = cmdGetMonoid<any>()
+
+export function getMonoid<Model, Action>(M: Monoid<Model>): Monoid<State<Model, Action>> {
+  return {
+    concat: (x, y) => [M.concat(model(x), model(y)), monoidCmd.concat(cmd(x), cmd(y))],
+    empty: of(M.empty)
+  }
+}
 
 export const state: Semigroupoid2<URI> & Bifunctor2<URI> & Comonad2<URI> & Foldable2<URI> & Traversable2<URI> & Monad2<URI> = {
   URI,

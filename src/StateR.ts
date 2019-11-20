@@ -7,7 +7,8 @@ import { Comonad3 } from 'fp-ts/lib/Comonad'
 import { Foldable3 } from 'fp-ts/lib/Foldable'
 import { Traversable3 } from 'fp-ts/lib/Traversable'
 import { Monad3 } from 'fp-ts/lib/Monad'
-import { CmdR, none, cmdr as cmdr_, getMonoid, fromCmd } from './CmdR'
+import { Monoid } from 'fp-ts/lib/Monoid'
+import { CmdR, none, cmdr as cmdr_, fromCmd, getMonoid as cmdrGetMonoid } from './CmdR'
 import { State } from './State'
 
 declare module 'fp-ts/lib/HKT' {
@@ -30,7 +31,14 @@ export function fromState<Model, Action>([model, cmd]: State<Model, Action>): St
   return [model, fromCmd(cmd)]
 }
 
-const monoidCmd = getMonoid<any, any>()
+const monoidCmd = cmdrGetMonoid<any, any>()
+
+export function getMonoid<R, Model, Action>(M: Monoid<Model>): Monoid<StateR<R, Model, Action>> {
+  return {
+    concat: (x, y) => [M.concat(model(x), model(y)), monoidCmd.concat(cmdr(x), cmdr(y))],
+    empty: of(M.empty)
+  }
+}
 
 export const stater: Semigroupoid3<URI> & Bifunctor3<URI> & Comonad3<URI> & Foldable3<URI> & Traversable3<URI> & Monad3<URI> = {
   URI,
