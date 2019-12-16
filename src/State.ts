@@ -24,7 +24,7 @@ export type State<Model, Action = never> = [Model, Cmd<Action>]
 export const model = <Model, Action>(state: State<Model, Action>): Model => state[0]
 export const cmd = <Model, Action>(state: State<Model, Action>): Cmd<Action> => state[1]
 
-export const of = <Model, Action>(model: Model): State<Model, Action> => [model, none]
+export const of = <Model>(model: Model): State<Model, never> => [model, none]
 
 const monoidCmd = cmdGetMonoid<any>()
 

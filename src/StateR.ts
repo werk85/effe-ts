@@ -25,7 +25,7 @@ export type StateR<R, Model, Action = never> = [Model, CmdR<R, Action>]
 export const model = <R, Model, Action>(state: StateR<R, Model, Action>): Model => state[0]
 export const cmdr = <R, Model, Action>(state: StateR<R, Model, Action>): CmdR<R, Action> => state[1]
 
-export const of = <R, Model, Action>(model: Model): StateR<R, Model, Action> => [model, none]
+export const of = <R, Model>(model: Model): StateR<R, Model, never> => [model, none]
 
 export function fromState<Model, Action>([model, cmd]: State<Model, Action>): StateR<{}, Model, Action> {
   return [model, fromCmd(cmd)]
