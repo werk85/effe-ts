@@ -8,6 +8,7 @@ import { Foldable3 } from 'fp-ts/lib/Foldable'
 import { Traversable3 } from 'fp-ts/lib/Traversable'
 import { Monad3 } from 'fp-ts/lib/Monad'
 import { Monoid } from 'fp-ts/lib/Monoid'
+import { Semigroup } from 'fp-ts/lib/Semigroup'
 import { CmdR, none, cmdr as cmdr_, fromCmd, getMonoid as cmdrGetMonoid } from './CmdR'
 import { State } from './State'
 
@@ -33,9 +34,15 @@ export function fromState<Model, Action>([model, cmd]: State<Model, Action>): St
 
 const monoidCmd = cmdrGetMonoid<any, any>()
 
+export function getSemigroup<R, Model, Action>(S: Semigroup<Model>): Semigroup<StateR<R, Model, Action>> {
+  return {
+    concat: (x, y) => [S.concat(model(x), model(y)), monoidCmd.concat(cmdr(x), cmdr(y))]
+  }
+}
+
 export function getMonoid<R, Model, Action>(M: Monoid<Model>): Monoid<StateR<R, Model, Action>> {
   return {
-    concat: (x, y) => [M.concat(model(x), model(y)), monoidCmd.concat(cmdr(x), cmdr(y))],
+    ...getSemigroup(M),
     empty: of(M.empty)
   }
 }

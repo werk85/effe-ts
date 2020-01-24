@@ -8,6 +8,7 @@ import { HKT } from 'fp-ts/lib/HKT'
 import { pipeable } from 'fp-ts/lib/pipeable'
 import { Monad2 } from 'fp-ts/lib/Monad'
 import { Monoid } from 'fp-ts/lib/Monoid'
+import { Semigroup } from 'fp-ts/lib/Semigroup'
 import { Cmd, cmd as cmd_, none, getMonoid as cmdGetMonoid } from './Cmd'
 
 declare module 'fp-ts/lib/HKT' {
@@ -28,9 +29,14 @@ export const of = <Model, Action = never>(model: Model): State<Model, Action> =>
 
 const monoidCmd = cmdGetMonoid<any>()
 
+export function getSemigroup<Model, Action>(S: Semigroup<Model>): Semigroup<State<Model, Action>> {
+  return {
+    concat: (x, y) => [S.concat(model(x), model(y)), monoidCmd.concat(cmd(x), cmd(y))]
+  }
+}
 export function getMonoid<Model, Action>(M: Monoid<Model>): Monoid<State<Model, Action>> {
   return {
-    concat: (x, y) => [M.concat(model(x), model(y)), monoidCmd.concat(cmd(x), cmd(y))],
+    ...getSemigroup(M),
     empty: of(M.empty)
   }
 }
