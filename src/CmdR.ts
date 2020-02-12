@@ -1,11 +1,11 @@
 import { Monoid } from 'fp-ts/lib/Monoid'
-import * as T from 'fp-ts/lib/Task'
 import { EMPTY } from 'rxjs'
 import { pipeable } from 'fp-ts/lib/pipeable'
 import * as E from 'fp-ts/lib/Either'
 import { Monad2 } from 'fp-ts/lib/Monad'
 import * as Rr from 'fp-ts/lib/Reader'
 import * as RTE from 'fp-ts/lib/ReaderTaskEither'
+import * as RT from 'fp-ts/lib/ReaderTask'
 import * as cmd from './Cmd'
 
 declare module 'fp-ts/lib/HKT' {
@@ -33,11 +33,11 @@ export function getMonoid<R, Action>(): Monoid<CmdR<R, Action>> {
   return Rr.getMonoid<R, cmd.Cmd<Action>>(cmd.getMonoid())
 }
 
-export function perform<R, A, Action>(task: Rr.Reader<R, T.Task<A>>, f: (a: A) => Action): CmdR<R, Action> {
+export function perform<R, A, Action>(task: RT.ReaderTask<R, A>, f: (a: A) => Action): CmdR<R, Action> {
   return r => cmd.perform(task(r), f)
 }
 
-export function perform_<R, A, Action>(task: Rr.Reader<R, T.Task<A>>): CmdR<R, Action> {
+export function perform_<R, A, Action>(task: RT.ReaderTask<R, A>): CmdR<R, Action> {
   return r => cmd.perform_(task(r))
 }
 

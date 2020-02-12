@@ -5,11 +5,11 @@ import * as Rx from 'rxjs/operators'
 import * as T from 'fp-ts/lib/Task'
 import * as IO from 'fp-ts/lib/IO'
 import { Reader } from 'fp-ts/lib/Reader'
+import { Location as HistoryLocation, History } from 'history'
 import { CmdR, perform_ } from './CmdR'
 import * as subr from './SubR'
 import * as html from './Html'
 import { StateR } from './StateR'
-import { Location as HistoryLocation, History } from 'history'
 
 export interface Location extends HistoryLocation {}
 

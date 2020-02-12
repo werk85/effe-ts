@@ -5,6 +5,8 @@ import { Monoid } from 'fp-ts/lib/Monoid'
 import { Monad3 } from 'fp-ts/lib/Monad'
 import { Profunctor3 } from 'fp-ts/lib/Profunctor'
 import * as sub from './Sub'
+import { Cmd } from './Cmd'
+import { CmdR } from './CmdR'
 
 declare module 'fp-ts/lib/HKT' {
   interface URItoKind3<R, E, A> {
@@ -25,6 +27,14 @@ export function fromObservable<R, Model, Action>(actions$: Observable<Action>): 
 
 export function fromSub<R, Model, Action>(sub: sub.Sub<Model, Action>): SubR<R, Model, Action> {
   return Rr.of(sub)
+}
+
+export function fromCmd<R, Model, Action>(cmd: Cmd<Action>): SubR<R, Model, Action> {
+  return fromSub(sub.fromCmd(cmd))
+}
+
+export function fromCmdR<R, Model, Action>(cmdr: CmdR<R, Action>): SubR<R, Model, Action> {
+  return r => sub.fromCmd(cmdr(r))
 }
 
 export function getMonoid<R, Model, Action>(): Monoid<SubR<R, Model, Action>> {
