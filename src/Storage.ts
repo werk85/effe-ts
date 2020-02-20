@@ -7,7 +7,8 @@ import { Union, of } from 'ts-union'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { IORef } from 'fp-ts/lib/IORef'
 import * as R from 'fp-ts/lib/Record'
-import { attempt, CmdR, perform_ } from './CmdR'
+import { ReaderObservable } from 'fp-ts-rxjs/lib/ReaderObservable'
+import { attempt, perform_ } from './Cmd'
 
 const traverseOE = O.option.traverse(E.either)
 
@@ -29,7 +30,7 @@ export const entity = <A>(key: string, type: t.Type<A, unknown>): StorageEntity<
 
 export interface Storage {
   get(key: string): TE.TaskEither<Error, O.Option<unknown>>
-  set(key: string, value: any): TE.TaskEither<Error, void>
+  set(key: string, value: unknown): TE.TaskEither<Error, void>
   remove(key: string): TE.TaskEither<Error, void>
 }
 
@@ -87,8 +88,9 @@ export const remove = <Env extends StorageEnv, A>(
 export const load = <Env extends StorageEnv, A, Action>(
   entity: StorageEntity<A>,
   f: (e: E.Either<StorageError, O.Option<A>>) => Action
-): CmdR<Env, Action> => attempt(get(entity), f)
+): ReaderObservable<Env, Action> => attempt(get(entity), f)
 
-export const save = <Env extends StorageEnv, A>(entity: StorageEntity<A>) => (value: A): CmdR<Env, never> =>
+export const save = <Env extends StorageEnv, A>(entity: StorageEntity<A>) => (value: A): ReaderObservable<Env, never> =>
   perform_(set(entity)(value))
-export const purge = <Env extends StorageEnv, A>(entity: StorageEntity<A>): CmdR<Env, never> => perform_(remove(entity))
+export const purge = <Env extends StorageEnv, A>(entity: StorageEntity<A>): ReaderObservable<Env, never> =>
+  perform_(remove(entity))
