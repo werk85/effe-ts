@@ -9,8 +9,8 @@ describe('Sub', () => {
       const fa = sub.of(123)
       const fb = sub.map(fa, identity)
 
-      const oa = await fa(EMPTY).toPromise()
-      const ob = await fb(EMPTY).toPromise()
+      const oa = await fa(EMPTY)({}).toPromise()
+      const ob = await fb(EMPTY)({}).toPromise()
 
       assert.deepStrictEqual(oa, ob)
     })
@@ -21,8 +21,8 @@ describe('Sub', () => {
       const ab = (a: number): number => a + 1
       const bc = (b: number): string => 'test' + b
 
-      const oa = await sub.map(fa, a => bc(ab(a)))(EMPTY).toPromise()
-      const ob = await sub.map(sub.map(fa, ab), bc)(EMPTY).toPromise()
+      const oa = await sub.map(fa, a => bc(ab(a)))(EMPTY)({}).toPromise()
+      const ob = await sub.map(sub.map(fa, ab), bc)(EMPTY)({}).toPromise()
 
 
       assert.deepStrictEqual(oa, ob)

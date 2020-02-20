@@ -5,7 +5,8 @@ import * as t from 'io-ts'
 import { Union, of } from 'ts-union'
 import * as R from 'fp-ts/lib/Record'
 import * as RTE from 'fp-ts/lib/ReaderTaskEither'
-import { CmdR, attempt } from './CmdR'
+import { ReaderObservable } from 'fp-ts-rxjs/lib/ReaderObservable'
+import { attempt } from './Cmd'
 
 export interface HttpResponse<O> {
   headers: Record<string, string>
@@ -58,23 +59,29 @@ const convertResponse = <O>(response: Response, body: O): HttpResponse<O> => ({
   url: response.url
 })
 
-export const fetch: Http = req =>
-  pipe(
-    TE.tryCatch(
-      () =>
-        window.fetch(req.url, {
-          ...req,
-          body: typeof req.body !== 'undefined' ? JSON.stringify(req.body) : undefined
-        }),
-      E.toError
-    ),
-    TE.chain(response =>
-      pipe(
-        TE.tryCatch(() => response.text(), E.toError),
-        TE.map(body => convertResponse(response, body))
+export interface FetchDefaults extends RequestInit {
+  baseUrl?: string
+}
+export function mkFetch(defaults: FetchDefaults = {}): Http {
+  return req =>
+    pipe(
+      TE.tryCatch(
+        () =>
+          window.fetch((defaults.baseUrl ?? '') + req.url, {
+            ...defaults,
+            ...req,
+            body: typeof req.body !== 'undefined' ? JSON.stringify(req.body) : defaults.body
+          }),
+        E.toError
+      ),
+      TE.chain(response =>
+        pipe(
+          TE.tryCatch(() => response.text(), E.toError),
+          TE.map(body => convertResponse(response, body))
+        )
       )
     )
-  )
+}
 
 export interface HttpEnv {
   http: Http
@@ -144,4 +151,4 @@ export const put = <A, O>(url: string, body: A, decoder: t.Decoder<unknown, O>):
 export const send = <Env extends HttpEnv, A, O, Action>(
   req: HttpRequest<A, O>,
   f: (e: HttpResponseEither<O>) => Action
-): CmdR<Env, Action> => attempt(request(req), f)
+): ReaderObservable<Env, Action> => attempt(request(req), f)

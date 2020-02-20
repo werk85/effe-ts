@@ -1,68 +1,32 @@
-import { Monoid } from 'fp-ts/lib/Monoid'
-import * as T from 'fp-ts/lib/Task'
-import { Observable, EMPTY, of as rxOf, merge, combineLatest, defer } from 'rxjs'
-import * as O from 'fp-ts/lib/Option'
-import { pipe, pipeable } from 'fp-ts/lib/pipeable'
-import * as Rx from 'rxjs/operators'
-import * as E from 'fp-ts/lib/Either'
-import { Monad1 } from 'fp-ts/lib/Monad'
-import * as TE from 'fp-ts/lib/TaskEither'
+import { EMPTY } from 'rxjs'
+import { Either } from 'fp-ts/lib/Either'
+import { ReaderTaskEither } from 'fp-ts/lib/ReaderTaskEither'
+import { ReaderTask } from 'fp-ts/lib/ReaderTask'
+import * as RO from 'fp-ts-rxjs/lib/ReaderObservable'
+import * as R from 'fp-ts-rxjs/lib/Observable'
+import { pipe } from 'fp-ts/lib/pipeable'
 
-declare module 'fp-ts/lib/HKT' {
-  interface URItoKind<A> {
-    'effe-ts/Cmd': Cmd<A>
-  }
+const monoidReaderObservable = RO.getMonoid<unknown, never>()
+
+export interface Cmd<R, Action> extends RO.ReaderObservable<R, Action> {}
+export const none: Cmd<unknown, never> = monoidReaderObservable.empty
+
+export function perform<R, A, Action>(task: ReaderTask<R, A>, f: (a: A) => Action): Cmd<R, Action> {
+  return r => pipe(R.fromTask(task(r)), R.map(f))
 }
 
-export const URI = 'effe-ts/Cmd'
-export type URI = typeof URI
-
-export interface Cmd<Action> extends Observable<T.Task<O.Option<Action>>> {}
-export const none: Cmd<never> = EMPTY
-export const constNone = <Action>(): Cmd<Action> => none
-export const of = <Action>(a: Action) => rxOf(T.of(O.some(a)))
-
-export function getMonoid<A>(): Monoid<Cmd<A>> {
-  return {
-    concat: (x, y) => merge(x, y),
-    empty: none
-  }
-}
-
-export function perform<A, Action>(task: T.Task<A>, f: (a: A) => Action): Cmd<Action> {
-  return rxOf(
+export function perform_<R, A>(task: ReaderTask<R, A>): Cmd<R, never> {
+  return r =>
     pipe(
-      task,
-      T.map(a => O.some(f(a)))
+      R.fromTask(task(r)),
+      R.chain(() => EMPTY)
     )
-  )
 }
 
-export function perform_<A, Action>(task: T.Task<A>): Cmd<Action> {
-  return rxOf(
-    pipe(
-      task,
-      T.map(() => O.none)
-    )
-  )
-}
-
-export function attempt<L, A, Action>(task: TE.TaskEither<L, A>, f: (e: E.Either<L, A>) => Action): Cmd<Action> {
+export function attempt<R, E, A, Action>(task: ReaderTaskEither<R, E, A>, f: (e: Either<E, A>) => Action): Cmd<R, Action> {
   return perform(task, f)
 }
 
-export const cmd: Monad1<URI> = {
-  URI,
-  map: (ma, f) => pipe(ma, Rx.map(T.map(O.map(f)))),
-  of,
-  ap: (mab, ma) =>
-    pipe(
-      combineLatest(mab, ma),
-      Rx.map(([mab, ma]) => () => Promise.all([mab(), ma()]).then(([mab, ma]) => O.option.ap(mab, ma)))
-    ),
-  chain: (ma, f) => pipe(ma, Rx.mergeMap(defer), Rx.mergeMap(O.fold(() => EMPTY, f)))
-}
+export const cmd = RO.readerObservable
 
-const { ap, apFirst, apSecond, chain, chainFirst, flatten, map } = pipeable(cmd)
-
-export { ap, apFirst, apSecond, chain, chainFirst, flatten, map }
+export * from 'fp-ts-rxjs/lib/ReaderObservable'

@@ -1,67 +1,67 @@
-import { Bifunctor2 } from 'fp-ts/lib/Bifunctor'
-import { Semigroupoid2 } from 'fp-ts/lib/Semigroupoid'
-import { Comonad2 } from 'fp-ts/lib/Comonad'
-import { Foldable2 } from 'fp-ts/lib/Foldable'
-import { Traversable2 } from 'fp-ts/lib/Traversable'
+import { Bifunctor3 } from 'fp-ts/lib/Bifunctor'
+import { Semigroupoid3 } from 'fp-ts/lib/Semigroupoid'
+import { Comonad3 } from 'fp-ts/lib/Comonad'
+import { Foldable3 } from 'fp-ts/lib/Foldable'
+import { Traversable3 } from 'fp-ts/lib/Traversable'
 import { Applicative } from 'fp-ts/lib/Applicative'
 import { HKT } from 'fp-ts/lib/HKT'
 import { pipeable } from 'fp-ts/lib/pipeable'
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { Monad3 } from 'fp-ts/lib/Monad'
 import { Monoid } from 'fp-ts/lib/Monoid'
 import { Semigroup } from 'fp-ts/lib/Semigroup'
-import { Cmd, cmd as cmd_, none, getMonoid as cmdGetMonoid } from './Cmd'
+import * as RO from 'fp-ts-rxjs/lib/ReaderObservable'
+
+const monoidReaderObservable = RO.getMonoid<any, any>()
 
 declare module 'fp-ts/lib/HKT' {
-  interface URItoKind2<E, A> {
-    'effe-ts/State': State<A, E>
+  interface URItoKind3<R, E, A> {
+    'effe-ts/State': State<R, A, E>
   }
 }
 
 export const URI = 'effe-ts/State'
 export type URI = typeof URI
 
-export type State<Model, Action = never> = [Model, Cmd<Action>]
+export type State<R, Model, Action = never> = [Model, RO.ReaderObservable<R, Action>]
 
-export const model = <Model, Action>(state: State<Model, Action>): Model => state[0]
-export const cmd = <Model, Action>(state: State<Model, Action>): Cmd<Action> => state[1]
+export const model = <R, Model>(state: State<R, Model, unknown>): Model => state[0]
+export const cmd = <R, Action>(state: State<R, unknown, Action>): RO.ReaderObservable<R, Action> => state[1]
 
-export const of = <Model, Action = never>(model: Model): State<Model, Action> => [model, none]
+export const of = <R, Model, Action = never>(model: Model): State<R, Model, Action> => [model, monoidReaderObservable.empty]
 
-const monoidCmd = cmdGetMonoid<any>()
-
-export function getSemigroup<Model, Action>(S: Semigroup<Model>): Semigroup<State<Model, Action>> {
+export function getSemigroup<R, Model, Action>(S: Semigroup<Model>): Semigroup<State<R, Model, Action>> {
   return {
-    concat: (x, y) => [S.concat(model(x), model(y)), monoidCmd.concat(cmd(x), cmd(y))]
+    concat: (x, y) => [S.concat(model(x), model(y)), monoidReaderObservable.concat(cmd(x), cmd(y))]
   }
 }
-export function getMonoid<Model, Action>(M: Monoid<Model>): Monoid<State<Model, Action>> {
+export function getMonoid<R, Model, Action>(M: Monoid<Model>): Monoid<State<R, Model, Action>> {
   return {
     ...getSemigroup(M),
     empty: of(M.empty)
   }
 }
 
-export const state: Semigroupoid2<URI> & Bifunctor2<URI> & Comonad2<URI> & Foldable2<URI> & Traversable2<URI> & Monad2<URI> = {
+export const state: Semigroupoid3<URI> & Bifunctor3<URI> & Comonad3<URI> & Foldable3<URI> & Traversable3<URI> & Monad3<URI> = {
   URI,
   compose: (ba, ae) => [model(ba), cmd(ae)],
   map: (ma, f) => [f(ma[0]), ma[1]],
-  bimap: (ma, f, g) => [g(model(ma)), cmd_.map(cmd(ma), f)],
-  mapLeft: (ma, f) => [model(ma), cmd_.map(cmd(ma), f)],
-  ap: (fab, fa) => [model(fab)(model(fa)), monoidCmd.concat(cmd(fab), cmd(fa))],
+  bimap: (ma, f, g) => [g(model(ma)), RO.readerObservable.map(cmd(ma), f)],
+  mapLeft: (ma, f) => [model(ma), RO.readerObservable.map(cmd(ma), f)],
+  ap: (fab, fa) => [model(fab)(model(fa)), monoidReaderObservable.concat(cmd(fab), cmd(fa))],
   of,
   chain: (fa, f) => {
     const [b, s] = f(model(fa))
-    return [b, monoidCmd.concat(cmd(fa), s)]
+    return [b, monoidReaderObservable.concat(cmd(fa), s)]
   },
   extract: model,
   extend: (ae, f) => [f(ae), cmd(ae)],
   reduce: (ae, b, f) => f(b, model(ae)),
   foldMap: _ => (ae, f) => f(model(ae)),
   reduceRight: (ae, b, f) => f(model(ae), b),
-  traverse: <F>(F: Applicative<F>) => <A, S, B>(as: State<A, S>, f: (a: A) => HKT<F, B>): HKT<F, State<B, S>> => {
+  traverse: <F>(F: Applicative<F>) => <R, A, S, B>(as: State<R, A, S>, f: (a: A) => HKT<F, B>): HKT<F, State<R, B, S>> => {
     return F.map(f(model(as)), b => [b, cmd(as)])
   },
-  sequence: <F>(F: Applicative<F>) => <A, S>(fas: State<HKT<F, A>, S>): HKT<F, State<A, S>> => {
+  sequence: <F>(F: Applicative<F>) => <R, A, S>(fas: State<R, HKT<F, A>, S>): HKT<F, State<R, A, S>> => {
     return F.map(model(fas), a => [a, cmd(fas)])
   }
 }
