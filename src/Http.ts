@@ -21,6 +21,7 @@ export interface HttpRequest<A, O> {
   url: string
   decoder: t.Decoder<unknown, O>
   headers?: Record<string, string>
+  credentials?: 'omit' | 'same-origin' | 'include'
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: A
 }
