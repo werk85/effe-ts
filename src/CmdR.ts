@@ -45,7 +45,7 @@ export function attempt<R, E, A, Action>(task: RTE.ReaderTaskEither<R, E, A>, f:
   return perform(task, f)
 }
 
-export function fromCmd<Action>(cmd: cmd.Cmd<Action>): CmdR<{}, Action> {
+export function fromCmd<R, Action>(cmd: cmd.Cmd<Action>): CmdR<R, Action> {
   return () => cmd
 }
 
