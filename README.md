@@ -15,15 +15,17 @@ yarn add effe-ts
 ```tsx
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { html, platform, state } from 'effe-ts'
+import { html, state } from 'effe-ts'
 
-type Action = { type: 'Increase' } | { type: 'Decrease' }
+type Action = { type: 'Increase' } | { type: 'Decrease' }
 
 type Model = number
 
-const init: state.State<Model> = state.of(0)
+interface State extends state.State<{}, Model> {}
 
-function update(action: Action, model: Model): state.State<Model> {
+const init: State = state.of(0)
+
+const update = (action: Action) => (model: Model): State => {
   switch (action.type) {
     case 'Increase':
       return state.of(model + 1)
@@ -32,13 +34,15 @@ function update(action: Action, model: Model): state.State<Model> {
   }
 }
 
-const view = (model: Model) => (dispatch: platform.Dispatch<Action>) => (
-  <>
-    <span>Counter: {model}</span>
-    <button onClick={() => dispatch({ type: 'Increase' })}>+</button>
-    <button onClick={() => dispatch({ type: 'Decrease' })}>-</button>
-  </>
-)
+function view(model: Model): html.Html<JSX.Element, Action> {
+  return dispatch => (
+    <>
+      <span>Counter: {model}</span>
+      <button onClick={() => dispatch({ type: 'Increase' })}>+</button>
+      <button onClick={() => dispatch({ type: 'Decrease' })}>-</button>
+    </>
+  )
+}
 
 const app = html.program(init, update, view)
 
@@ -47,5 +51,6 @@ html.run(app, dom => ReactDOM.render(dom, document.getElementById('app')!), {})
 
 ### Further examples
 
+ * [effe-ts-starter](https://github.com/werk85/effe-ts-starter) - Starter Project that conatins Routing and Bootstrap.
  * [react-todo-app](https://github.com/werk85/react-todo-app) - Example TODO application with live sync between multiple browser instances via CouchDB
  * [Http Request Example](https://github.com/werk85/examples/src/Http.tsx)
