@@ -100,7 +100,9 @@ const config: Configuration = {
         }
       ]
     }
-  }
+  },
+
+  stats: 'errors-only'
 }
 
 export default config
