@@ -28,7 +28,10 @@ export interface NavigationHistory {
 export function history(history: History): NavigationHistory {
   return {
     location: history.location,
-    push: url => () => history.push(url),
+    push: url => () => {
+      const [pathname, search] = url.split('?')
+      history.push({ pathname, search })
+    },
     back: () => history.back(),
     listen: f => () => history.listen(f)
   }
