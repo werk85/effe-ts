@@ -1,0 +1,3 @@
+{
+  "reject": ["history", "rxjs"]
+}

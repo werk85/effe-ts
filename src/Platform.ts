@@ -1,10 +1,10 @@
-import { pipe } from 'fp-ts/lib/pipeable'
+import { pipe } from 'fp-ts/lib/function'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { distinctUntilChanged, share } from 'rxjs/operators'
 import { Reader } from 'fp-ts/lib/Reader'
 import * as R from 'fp-ts-rxjs/lib/Observable'
 import * as RO from 'fp-ts-rxjs/lib/ReaderObservable'
-import { fold } from 'fp-ts/lib/Monoid'
+import { concatAll } from 'fp-ts/lib/Monoid'
 import * as sub from './Sub'
 import * as state from './State'
 
@@ -35,7 +35,7 @@ export function program<Env, Model, Action>(
 
     const sub$ = subscriptions(model$)
 
-    const action$ = pipe(env, fold(RO.getMonoid<Env, Action>())([cmd$, sub$]))
+    const action$ = pipe(env, concatAll(RO.getMonoid<Env, Action>())([cmd$, sub$]))
 
     return { action$, dispatch, model$ }
   }

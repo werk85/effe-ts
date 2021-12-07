@@ -4,13 +4,11 @@ import * as t from 'io-ts'
 import * as E from 'fp-ts/lib/Either'
 import * as O from 'fp-ts/lib/Option'
 import { Union, of } from 'ts-union'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { flow, pipe } from 'fp-ts/lib/function'
 import { IORef } from 'fp-ts/lib/IORef'
 import * as R from 'fp-ts/lib/Record'
 import { ReaderObservable } from 'fp-ts-rxjs/lib/ReaderObservable'
 import { attempt, perform_ } from './Cmd'
-
-const traverseOE = O.option.traverse(E.either)
 
 export const StorageError = Union({
   NativeError: of<Error>(),
@@ -47,7 +45,7 @@ export function memoryStorage(store: IORef<Record<string, unknown>> = new IORef(
         TE.rightIO(store.read),
         TE.map(store => R.lookup(key, store))
       ),
-    set: (key, value) => TE.rightIO(store.modify(R.insertAt(key, value))),
+    set: (key, value) => TE.rightIO(store.modify(R.upsertAt(key, value))),
     remove: key => TE.rightIO(store.modify(R.deleteAt(key)))
   }
 }
@@ -56,41 +54,44 @@ export interface StorageEnv {
   storage: Storage
 }
 
-export const get = <Env extends StorageEnv, A>(
-  entity: StorageEntity<A>
-): RTE.ReaderTaskEither<Env, StorageError, O.Option<A>> => env =>
-  pipe(
-    env.storage.get(entity.key),
-    TE.mapLeft(StorageError.NativeError),
-    TE.chain(value =>
-      pipe(
-        traverseOE(value, value =>
-          pipe(
-            entity.type.decode(value),
-            E.mapLeft(errors => StorageError.ValidationErrors(errors, value))
-          )
-        ),
-        TE.fromEither
+export const get =
+  <Env extends StorageEnv, A>(entity: StorageEntity<A>): RTE.ReaderTaskEither<Env, StorageError, O.Option<A>> =>
+  env =>
+    pipe(
+      env.storage.get(entity.key),
+      TE.mapLeft(StorageError.NativeError),
+      TE.chain(
+        flow(
+          O.traverse(E.Applicative)(value =>
+            pipe(
+              entity.type.decode(value),
+              E.mapLeft(errors => StorageError.ValidationErrors(errors, value))
+            )
+          ),
+          TE.fromEither
+        )
       )
     )
-  )
 
-export const set = <Env extends StorageEnv, A>(entity: StorageEntity<A>) => (
-  value: A
-): RTE.ReaderTaskEither<Env, StorageError, void> => env =>
-  pipe(env.storage.set(entity.key, entity.type.encode(value)), TE.mapLeft(StorageError.NativeError))
+export const set =
+  <Env extends StorageEnv, A>(entity: StorageEntity<A>) =>
+  (value: A): RTE.ReaderTaskEither<Env, StorageError, void> =>
+  env =>
+    pipe(env.storage.set(entity.key, entity.type.encode(value)), TE.mapLeft(StorageError.NativeError))
 
-export const remove = <Env extends StorageEnv, A>(
-  entity: StorageEntity<A>
-): RTE.ReaderTaskEither<Env, StorageError, void> => env =>
-  pipe(env.storage.remove(entity.key), TE.mapLeft(StorageError.NativeError))
+export const remove =
+  <Env extends StorageEnv, A>(entity: StorageEntity<A>): RTE.ReaderTaskEither<Env, StorageError, void> =>
+  env =>
+    pipe(env.storage.remove(entity.key), TE.mapLeft(StorageError.NativeError))
 
 export const load = <Env extends StorageEnv, A, Action>(
   entity: StorageEntity<A>,
   f: (e: E.Either<StorageError, O.Option<A>>) => Action
 ): ReaderObservable<Env, Action> => attempt(get(entity), f)
 
-export const save = <Env extends StorageEnv, A>(entity: StorageEntity<A>) => (value: A): ReaderObservable<Env, never> =>
-  perform_(set(entity)(value))
+export const save =
+  <Env extends StorageEnv, A>(entity: StorageEntity<A>) =>
+  (value: A): ReaderObservable<Env, never> =>
+    perform_(set(entity)(value))
 export const purge = <Env extends StorageEnv, A>(entity: StorageEntity<A>): ReaderObservable<Env, never> =>
   perform_(remove(entity))

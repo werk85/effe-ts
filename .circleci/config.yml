@@ -5,24 +5,14 @@ commands:
     description: Setup project for all further steps
     steps:
       - checkout
-      - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-v1-{{ arch }}-{{ checksum "yarn.lock" }}
-            - yarn-packages-v1-{{ arch }}-
       - run:
           name: Install Dependencies
-          command: yarn --cache-folder ~/.yarn --frozen-lockfile
-      - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-v1-{{ arch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.yarn
+          command: yarn --immutable
 
 jobs:
   build:
     docker:
-      - image: circleci/node:12
+      - image: cimg/node:16.13
     steps:
       - setup
       - run:

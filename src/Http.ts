@@ -1,11 +1,12 @@
 import * as E from 'fp-ts/lib/Either'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as t from 'io-ts'
 import { Union, of } from 'ts-union'
 import * as R from 'fp-ts/lib/Record'
 import * as RTE from 'fp-ts/lib/ReaderTaskEither'
 import { ReaderObservable } from 'fp-ts-rxjs/lib/ReaderObservable'
+import * as J from 'fp-ts/lib/Json'
 import { attempt } from './Cmd'
 
 export interface HttpResponse<O> {
@@ -44,7 +45,7 @@ export interface Http {
 const convertHeaders = (headers: Headers): Record<string, string> => {
   let result: Record<string, string> = {}
   headers.forEach((value, key) => {
-    result = R.insertAt(key, value)(result)
+    result = R.upsertAt(key, value)(result)
   })
   return result
 }
@@ -89,29 +90,32 @@ export interface HttpEnv {
 export type HttpResponseEither<O> = E.Either<HttpErrorResponse, HttpResponse<O>>
 export type HttpResponseReaderTaskEither<Env, O> = RTE.ReaderTaskEither<Env, HttpErrorResponse, HttpResponse<O>>
 
-export const request = <Env extends HttpEnv, A, O>(req: HttpRequest<A, O>): HttpResponseReaderTaskEither<Env, O> => env =>
-  pipe(
-    env.http(req),
-    TE.mapLeft(HttpErrorResponse.UnknownError),
-    TE.chain(response =>
-      response.status.code >= 400 ? TE.left(HttpErrorResponse.BadStatusError(response)) : TE.right(response)
-    ),
-    TE.chain(response =>
-      pipe(
-        E.parseJSON(response.body, parseError),
-        E.chain(json =>
-          pipe(
-            req.decoder.decode(json),
-            E.bimap(
-              errors => HttpErrorResponse.ValidationErrors(errors, json),
-              body => ({ ...response, body })
+export const request =
+  <Env extends HttpEnv, A, O>(req: HttpRequest<A, O>): HttpResponseReaderTaskEither<Env, O> =>
+  env =>
+    pipe(
+      env.http(req),
+      TE.mapLeft(HttpErrorResponse.UnknownError),
+      TE.chain(response =>
+        response.status.code >= 400 ? TE.left(HttpErrorResponse.BadStatusError(response)) : TE.right(response)
+      ),
+      TE.chain(response =>
+        pipe(
+          J.parse(response.body),
+          E.mapLeft(parseError),
+          E.chain(json =>
+            pipe(
+              req.decoder.decode(json),
+              E.bimap(
+                errors => HttpErrorResponse.ValidationErrors(errors, json),
+                body => ({ ...response, body })
+              )
             )
-          )
-        ),
-        TE.fromEither
+          ),
+          TE.fromEither
+        )
       )
     )
-  )
 
 export const del = <O>(url: string, decoder: t.Decoder<unknown, O>): HttpRequest<never, O> => ({
   url,

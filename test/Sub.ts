@@ -1,13 +1,13 @@
-import { sub } from '../src/Sub'
-import { identity } from 'fp-ts/lib/function'
 import * as assert from 'assert'
+import { identity, pipe } from 'fp-ts/lib/function'
 import { EMPTY } from 'rxjs'
+import * as _ from '../src/Sub'
 
 describe('Sub', () => {
   describe('Functor', () => {
     it('identity', async () => {
-      const fa = sub.of(123)
-      const fb = sub.map(fa, identity)
+      const fa = _.of(123)
+      const fb = _.Functor.map(fa, identity)
 
       const oa = await fa(EMPTY)({}).toPromise()
       const ob = await fb(EMPTY)({}).toPromise()
@@ -16,14 +16,16 @@ describe('Sub', () => {
     })
 
     it('composition', async () => {
-      const fa = sub.of(123)
+      const fa = _.of(123)
 
       const ab = (a: number): number => a + 1
       const bc = (b: number): string => 'test' + b
 
-      const oa = await sub.map(fa, a => bc(ab(a)))(EMPTY)({}).toPromise()
-      const ob = await sub.map(sub.map(fa, ab), bc)(EMPTY)({}).toPromise()
-
+      const oa = await pipe(
+        fa,
+        _.map(a => bc(ab(a)))
+      )(EMPTY)({}).toPromise()
+      const ob = await pipe(pipe(fa, _.map(ab)), _.map(bc))(EMPTY)({}).toPromise()
 
       assert.deepStrictEqual(oa, ob)
     })
