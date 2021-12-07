@@ -1,0 +1,41 @@
+{
+  "extends": "werk85",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "./tsconfig.json"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "files":  ["*.js"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    },
+    {
+      "files": ["test/**"],
+      "extends": ["werk85", "werk85/jest"],
+      "parserOptions": {
+        "project": "test/tsconfig.json"
+      },
+      "rules": {
+        "jest/expect-expect": [
+          "error",
+          {
+            "assertFunctionNames": [
+              "assert.deepStrictEqual",
+              "assert.ok",
+              "assert.strictEqual",
+              "testing.*"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,15 +1,15 @@
-import { Subject, Observable } from 'rxjs'
-import { pipe } from 'fp-ts/lib/pipeable'
 import * as R from 'fp-ts-rxjs/lib/Observable'
+import * as RO from 'fp-ts-rxjs/lib/ReaderObservable'
+import { pipe } from 'fp-ts/lib/function'
 import * as IO from 'fp-ts/lib/IO'
 import { Reader } from 'fp-ts/lib/Reader'
-import { Location as HistoryLocation, History, Listener } from 'history'
-import * as RO from 'fp-ts-rxjs/lib/ReaderObservable'
 import * as T from 'fp-ts/lib/Task'
-import * as sub from './Sub'
+import { History, LocationListener, Location as HistoryLocation } from 'history'
+import { Observable, Subject } from 'rxjs'
+import { perform_ } from './Cmd'
 import * as html from './Html'
 import { State } from './State'
-import { perform_ } from './Cmd'
+import * as sub from './Sub'
 
 export interface Location extends HistoryLocation {}
 
@@ -21,18 +21,19 @@ export interface LocationUpdate {
 export interface NavigationHistory {
   location: Location
   push(url: string): IO.IO<void>
-  back: IO.IO<void>
-  listen(f: Listener<any>): IO.IO<void>
+  replace(url: string): IO.IO<void>
+  goBack: IO.IO<void>
+  goForward: IO.IO<void>
+  listen(f: LocationListener<unknown>): IO.IO<void>
 }
 
 export function history(history: History): NavigationHistory {
   return {
     location: history.location,
-    push: url => () => {
-      const [pathname, search] = url.split('?')
-      history.push({ pathname, search })
-    },
-    back: () => history.back(),
+    push: url => () => history.push(url),
+    replace: url => () => history.replace(url),
+    goBack: () => history.goBack(),
+    goForward: () => history.goForward(),
     listen: f => () => history.listen(f)
   }
 }
@@ -44,8 +45,14 @@ export interface NavigationEnv {
 export const push = <Env extends NavigationEnv>(url: string): RO.ReaderObservable<Env, never> =>
   perform_(env => T.fromIO(env.history.push(url)))
 
+export const replace = <Env extends NavigationEnv>(url: string): RO.ReaderObservable<Env, never> =>
+  perform_(env => T.fromIO(env.history.replace(url)))
+
 export const goBack = <Env extends NavigationEnv>(): RO.ReaderObservable<Env, never> =>
-  perform_(env => T.fromIO(env.history.back))
+  perform_(env => T.fromIO(env.history.goBack))
+
+export const goForward = <Env extends NavigationEnv>(): RO.ReaderObservable<Env, never> =>
+  perform_(env => T.fromIO(env.history.goForward))
 
 export interface Program<Model, Action, DOM> extends html.Program<Model, Action, DOM> {
   listen: IO.IO<void>
@@ -69,7 +76,7 @@ export function program<Env extends NavigationEnv, Model, Action, DOM>(
 
     return {
       ...html.program(init(env.history.location), update, view, subs)(env),
-      listen: env.history.listen(update => update$.next(update))
+      listen: env.history.listen((location, action) => update$.next({ location, action }))
     }
   }
 }

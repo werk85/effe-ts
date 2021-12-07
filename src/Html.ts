@@ -1,11 +1,11 @@
-import { Observable } from 'rxjs'
-import { pipe, pipeable } from 'fp-ts/lib/pipeable'
-import { Reader } from 'fp-ts/lib/Reader'
 import * as R from 'fp-ts-rxjs/lib/Observable'
+import { pipe } from 'fp-ts/lib/function'
 import { Functor2 } from 'fp-ts/lib/Functor'
-import * as sub from './Sub'
+import { Reader } from 'fp-ts/lib/Reader'
+import { Observable } from 'rxjs'
 import * as platform from './Platform'
 import * as state from './State'
+import * as sub from './Sub'
 
 declare module 'fp-ts/lib/HKT' {
   interface URItoKind2<E, A> {
@@ -20,14 +20,17 @@ export interface Html<DOM, Action> {
   (dispatch: platform.Dispatch<Action>): DOM
 }
 
-export const html: Functor2<URI> = {
+export const map: <E, A, B>(f: (a: A) => B) => (ma: Html<E, A>) => Html<E, B> = f => fa => dispatch => fa(a => dispatch(f(a)))
+
+export const Functor: Functor2<URI> = {
   URI,
-  map: (fa, f) => dispatch => fa(a => dispatch(f(a)))
+  map: (fa, f) => pipe(fa, map(f))
 }
 
-const { map } = pipeable(html)
-
-export { map }
+/**
+ * @deprecated
+ */
+export const html = Functor
 
 export interface Renderer<DOM> {
   (dom: DOM): void

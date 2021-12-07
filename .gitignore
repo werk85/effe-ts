@@ -1,3 +1,12 @@
 coverage/
 node_modules/
 lib/
+
+# yarn berry zero-installs
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

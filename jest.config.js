@@ -11,9 +11,9 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js'],
   globals: {
     'ts-jest': {
-      tsConfig: './tsconfig.test.json'
+      tsconfig: './tsconfig.test.json'
     }
-  },
+  }
   // coverageThreshold: {
   //   global: {
   //     branches: 100,
